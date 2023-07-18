@@ -2,15 +2,17 @@ from src.logger import logging
 import pandas as pd
 import numpy as np
 import os,sys
-from src.exception import CustomException
+from incpre.exception import CustmeException
 from dataclasses import dataclass
 from sklearn.model_selection import train_test_split
+from incpre.components.data_transformation import DataTransformation
+from incpre.components.model_trainer import ModelTrainer
 
 @dataclass
 class DataIngestionConfig:
-    train_data_path = os.path.join("artifact","train.csv")
-    test_data_path = os.path.join("artifact","test.csv")
-    raw_data_path = os.path.join("artifact","raw.csv")
+    train_data_path = os.path.join("artifact/data_ingestion","train.csv")
+    test_data_path = os.path.join("artifact/data_ingestion","test.csv")
+    raw_data_path = os.path.join("artifact/data_ingestion","raw.csv")
 
 class DataIngestion:
     def __init__(self):
@@ -32,17 +34,21 @@ class DataIngestion:
             test_set.to_csv(self.ingestion_config.test_data_path, index = False)
 
             logging.info("data ingestion completed")
-            return (
-                self.ingestion_config.train_data_path,
-                self.ingestion_config.test_data_path
-            )
+            return (self.ingestion_config.train_data_path,
+                self.ingestion_config.test_data_path)
 
 
         except Exception as e:
-            raise CustomException(e, sys)
+            raise CustmeException(e, sys)
         
 
 
 if __name__ == "__main__":
     obj = DataIngestion()
-    obj.initiate_data_ingestion()
+    train_path, test_path = obj.initiate_data_ingestion()
+
+    data_transformation = DataTransformation()
+    train_arr, test_arr , _ = data_transformation.initiate_data_transformation(train_path, test_path)
+
+    model_trainer = ModelTrainer()
+    model_trainer.initiate_model_trainer(train_arr,test_arr)
